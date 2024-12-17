@@ -12,7 +12,7 @@ app.use(express.json());
 
 //connecting database
 const db = mysql.createConnection({
-    host: RAILWAY_PRIVATE_DOMAIN,
+    host: ${{RAILWAY_PRIVATE_DOMAIN}},
     user: root,
     password: pjSUPidCMWrszCPuNXjqwUUVumuEmVNb,
     database: railway,
