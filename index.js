@@ -12,11 +12,11 @@ app.use(express.json());
 
 //connecting database
 const db = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    port: process.env.DB_PORT
+    host: RAILWAY_PRIVATE_DOMAIN,
+    user: root,
+    password: pjSUPidCMWrszCPuNXjqwUUVumuEmVNb,
+    database: railway,
+    port: 3306
 });
 
 db.connect(err => {
