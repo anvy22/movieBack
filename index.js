@@ -108,7 +108,7 @@ app.post('/search-movie', async (req, res) => {
     const movieName = req.body.movieName;
 
     try {
-        const response = await axios.get('https://api.themoviedb.org/3/search/movie', {
+        const response = await axios.get('https://api.themoviedb.org/3/search-movie', {
             params: {
                 api_key: apiKey,
                 query: movieName,
