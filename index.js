@@ -108,34 +108,56 @@ app.post('/search-movie', async (req, res) => {
     const movieName = req.body.movieName;
 
     try {
-        const response = await axios.get('https://api.themoviedb.org/3/search-movie', {
+        // Fetch movies based on the search query
+        const response = await axios.get('https://api.themoviedb.org/3/search/movie', {
             params: {
                 api_key: apiKey,
                 query: movieName,
             }
         });
 
+        // Ensure results exist
+        if (!response.data.results || response.data.results.length === 0) {
+            return res.status(404).json({ error: 'No movies found' });
+        }
+
+        // Map the movie data
         const movies = response.data.results.map(movie => ({
+            id: movie.id,
             title: movie.title,
             releaseYear: movie.release_date ? movie.release_date.split('-')[0] : 'Unknown',
             poster: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : placeholderImage,
-            id: movie.id,
         }));
 
-        // Optionally fetch the cast for each movie
-        for (let movie of movies) {
-            const castResponse = await axios.get(`https://api.themoviedb.org/3/movie/${movie.id}/credits`, {
-                params: { api_key: apiKey }
-            });
-            movie.actors = castResponse.data.cast.slice(0, 5).map(actor => actor.name);
-        }
+        // Fetch cast details for each movie in parallel
+        await Promise.all(
+            movies.map(async (movie) => {
+                try {
+                    const castResponse = await axios.get(`https://api.themoviedb.org/3/movie/${movie.id}/credits`, {
+                        params: { api_key: apiKey }
+                    });
+                    movie.actors = castResponse.data.cast.slice(0, 5).map(actor => actor.name);
+                } catch (err) {
+                    console.error(`Error fetching cast for movie ID ${movie.id}:`, err.message);
+                    movie.actors = []; // Default to empty array if cast fetching fails
+                }
+            })
+        );
 
-        res.json(movies);  // Return all movie details
+        // Return the final movies array with cast details
+        res.json(movies);
+
     } catch (error) {
         console.error('Error fetching movie data:', error.message);
-        res.status(500).json({ error: 'Failed to fetch movie data' });
+
+        if (error.response && error.response.status === 404) {
+            res.status(404).json({ error: 'No movies found' });
+        } else {
+            res.status(500).json({ error: 'Failed to fetch movie data' });
+        }
     }
 });
+
 
 // Endpoint to submit a review
 app.post('/rate-movie', async (req, res) => {
